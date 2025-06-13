@@ -1,2 +1,12 @@
-# docxfill
-📁 DocxFill docxfill lets you effortlessly populate .docx files by:  ✅ Filling {{placeholders}} in documents with text or images ✅ Updating {{placeholders}} in charts within .docx files ✅ Preserving all existing comments during the fill process
+# DocxFill
+
+`docxfill` lets you:
+
+✅ Fill `{{placeholders}}` in `.docx` files with **text or images**  
+✅ Fill `{{placeholders}}` in **chart files** within `.docx`  
+✅ Preserve existing **comments** in `.docx` documents
+
+## Installation
+
+```bash
+pip install docxfill

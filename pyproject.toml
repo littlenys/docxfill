@@ -1,0 +1,19 @@
+[project]
+name = "docxfill"
+version = "0.1.0"
+description = "Fill text and images into .docx files from placeholders."
+authors = [
+    { name = "ThuyHangNguyen", email = "littlenysvcs@gmail.com" }
+]
+license = "MIT"
+dependencies = [
+    "python-docx",
+    "openpyxl",
+]
+
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[project.urls]
+"Source" = "https://github.com/yourUsername/docxfill"
