@@ -1,32 +1,32 @@
-name: Build Wheel
+name: Publish to PyPI
 
 on:
   push:
     tags:
-      - "v*"  # Chỉ chạy khi bạn đẩy một tag v*, như v0.1.0
+      - "v*"  # Push tag vX.X.X để kích hoạt
+
+permissions:
+  id-token: write  # Cấp quyền OAUTH
+  contents: read
 
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
     
     steps:
       - uses: actions/checkout@v3
 
-      - name: Set up Python 3.9
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.9"
-
-      - name: Install build
-        run: |
-          pip install build
+          python-version: '3.9'
 
       - name: Build package
         run: |
+          pip install build
           python -m build
 
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v3
+      - name: Publish to PyPI (Trusted Publisher)
+        uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          name: dist
-          path: dist/*
+          attestations: true
