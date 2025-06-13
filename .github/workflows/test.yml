@@ -1,31 +1,46 @@
-name: Tests
+name: Publish to PyPI
 
 on:
   push:
-    branches:
-      - main
-  pull_request:
+    tags:
+      - "v*"  # Tự động publish khi push tag vX.X.X
+
+permissions:
+  id-token: write  # Cho phép dùng OIDC để publish qua Trusted Publisher
+  contents: read
 
 jobs:
-  test:
-    runs-on: ubuntu
-    
-    timeout-minutes: 30 
-
-    strategy:
-      matrix:
-        python-version: [3.9, 3.11, 3.12]
+  publish:
+    name: Build and Publish to PyPI
+    runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout source code
+        uses: actions/checkout@v3
 
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python 3.9
         uses: actions/setup-python@v4
         with:
-          python-version: ${{ matrix.python-version}}
+          python-version: '3.9'
 
-      - name: Install package
-        run: pip install .[testing]
+      - name: Set up pip cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
-      - name: Run Tests with 10-second timeout per test
-        run: pytest -vv --timeout=10
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build
+
+      - name: Build the package
+        run: python -m build
+
+      - name: Publish to PyPI (Trusted Publisher)
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          attestations: true  # ❌ Gỡ nếu không cần ký số để tăng tốc
+          #skip-existing: true   # ✅ Không fail nếu gói đã tồn tại (an toàn hơn)
