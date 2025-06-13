@@ -27,5 +27,5 @@ jobs:
       - name: Install package
         run: pip install .[testing]
 
-      - name: Run Tests
-        run: pytest
+      - name: Run Tests with 10-second timeout per test
+        run: pytest -vv --timeout=10
