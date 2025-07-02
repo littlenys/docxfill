@@ -2,21 +2,21 @@
 name = "docxfill"
 version = "0.1.0"
 description = "Fill text and images into .docx files from placeholders."
-readme = "README.md"                      # Đảm bảo có file README.md
-requires-python = ">=3.7"                 # Giới hạn phiên bản Python (bạn chỉnh nếu cần)
+readme = "README.md"
+requires-python = ">=3.7"
 authors = [
     { name = "ThuyHangNguyen", email = "littlenysvcs@gmail.com" }
 ]
-license = { text = "MIT" }                # Cách khai báo license chuẩn hơn
+license = { text = "MIT" }
 dependencies = [
     "python-docx",
-    "openpyxl",
+    "openpyxl"
 ]
 
 [project.urls]
-Source = "https://github.com/ThuyHangNguyen/docxfill"   # Thay bằng link GitHub chính xác
-Bug-Tracker = "https://github.com/ThuyHangNguyen/docxfill/issues"
-Documentation = "https://github.com/ThuyHangNguyen/docxfill#readme"
+"Source" = "https://github.com/ThuyHangNguyen/docxfill"
+"Bug Tracker" = "https://github.com/ThuyHangNguyen/docxfill/issues"
+"Documentation" = "https://github.com/ThuyHangNguyen/docxfill#readme"
 
 [project.optional-dependencies]
 testing = ["pytest"]
