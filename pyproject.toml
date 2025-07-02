@@ -15,7 +15,7 @@ dependencies = [
 
 [project.urls]
 Source = "https://github.com/ThuyHangNguyen/docxfill"   # Thay bằng link GitHub chính xác
-Bug Tracker = "https://github.com/ThuyHangNguyen/docxfill/issues"
+Bug-Tracker = "https://github.com/ThuyHangNguyen/docxfill/issues"
 Documentation = "https://github.com/ThuyHangNguyen/docxfill#readme"
 
 [project.optional-dependencies]
