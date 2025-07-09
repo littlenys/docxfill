@@ -18,41 +18,48 @@ def convert_to_number_if_possible(value):
         pass
     return value
 
-def replace_text_in_paragraph(paragraph, replace_text_dict, replace_image_dict, state_dir):
+def replace_text_in_paragraph(paragraph, replace_text_dict = [], replace_image_dict = [], state_dir="./test/"):
     inline = paragraph.runs
     _stack = ''
     _start_stack = 0
     _choose_item = []
     for item in inline:
         text_inline = item.text
-        pattern = r'\{\{(.*?)\}\}'
-        matches = re.findall(pattern, text_inline)
+        placeholder_pattern = r'\{\{(.*?)\}\}'
+        matches = re.findall(placeholder_pattern, text_inline)
         for placeholder in matches:
-            # Kiá»ƒm tra náº¿u placeholder cĂ³ trong replace_text_dict
+            # Kiểm tra nếu placeholder có trong replace_text_dict
             if placeholder in replace_text_dict:
-                # Thay tháº¿ placeholder báº±ng giĂ¡ trá»‹ tÆ°Æ¡ng á»©ng trong dictionary
+                # Thay thế placeholder bằng giá trị tương ứng trong dictionary
                 replacement_text = replace_text_dict[placeholder]
                 text_inline = text_inline.replace("{{"+f"{placeholder}"+"}}", replacement_text)
                 item.text = text_inline
 
-        if "{" in text_inline and "}}" not in text_inline.split("{")[-1]:
-            _start_stack += text_inline.split("}")[-1].count('{')
-        if "}" in text_inline and "{{" not in text_inline.split("}")[0]:
+        if "{" in text_inline:# and "}}" not in text_inline.split("{{")[-1]:
+            _start_stack += text_inline.count('{')
+        if "}" in text_inline and "{{" not in text_inline.split("}}")[0]:
             _choose_item.append(item)
             if _start_stack > 0:
-                _start_stack -= text_inline.split("{")[-1].count('}')
-                _stack += text_inline.split("}")[0] + "}"*text_inline.split("{")[-1].count('}')
-                if _start_stack == 0:
+                # _start_stack += text_inline.count('{')
+                _start_stack -= text_inline.count('}')
+                _stack += text_inline
+                if len(re.findall(placeholder_pattern, _stack)) > 0:
                     placeholder = _stack.split("{{")[1].split("}}")[0]
                     if placeholder in replace_text_dict.keys():
-                        replace_item = _choose_item[1]
-                        replace_item.text = replace_text_dict[placeholder]
+                        text_1  = str(_choose_item[1].text)
+                        _choose_item[1].text = replace_text_dict[placeholder] + str(text_1.split('}', 1)[1] if '}' in text_1 else "")
                         _choose_item[-1].text = _choose_item[-1].text.replace("}", "")
                         _choose_item[0].text = _choose_item[0].text.replace("{", "")
                         for i in range(2, len(_choose_item)-2):
                             _choose_item[i].text = ""
-                        _stack = ''
-                        _choose_item = []
+                        
+                        if _start_stack == 0:
+                            _choose_item = []
+                            _stack = ''
+                        if _start_stack > 0:
+                            replacement_text = replace_text_dict[placeholder]
+                            _stack = _stack.replace("{{"+f"{placeholder}"+"}}", replacement_text)
+                            _choose_item = [_choose_item[-1]]
 
                     if placeholder in replace_image_dict.keys():
                         run = paragraph.add_run()
@@ -64,10 +71,15 @@ def replace_text_in_paragraph(paragraph, replace_text_dict, replace_image_dict, 
                         _choose_item[0].text = _choose_item[0].text.replace("{", "")
                         for i in range(1, len(_choose_item)-2):
                             _choose_item[i].text = ""
-                        _stack = ''
-                        _choose_item = []
+                        if _start_stack == 0:
+                            _choose_item = []
+                            _stack = ''
+                        if _start_stack > 0:
+                            _stack = _stack.replace("{{"+f"{placeholder}"+"}}", replacement_text)
+                            _choose_item = [_choose_item[-1]]
 
-        if _start_stack >0 :
+                
+        if _start_stack >0 and "}}" not in text_inline :
             _choose_item.append(item)
             _stack += text_inline
 
@@ -109,34 +121,32 @@ def check_unfill_embedded_excel(docx_zip, embedded_file_name, text_content):
             unfill_list += unfill
             return unfill_list
 
-def check_unfill(paragraph):
-    inline = paragraph.runs
-    _stack = ''
-    _start_stack = 0
-    _choose_item = []
-    unfill = []
-    for item in inline:
-        text_inline = item.text
-        pattern = r'\{\{(.*?)\}\}'
-        matches = re.findall(pattern, text_inline)
-        for placeholder in matches:
-            unfill.append(placeholder)
 
-        if "{" in text_inline and "}}" not in text_inline.split("{")[-1]:
-            _start_stack += text_inline.split("}")[-1].count('{')
-        if "}" in text_inline and "{{" not in text_inline.split("}")[0]:
-            _choose_item.append(item)
-            if _start_stack > 0:
-                _start_stack -= text_inline.split("{")[-1].count('}')
-                _stack += text_inline.split("}")[0] + "}"*text_inline.split("{")[-1].count('}')
-                if _start_stack == 0:
-                    placeholder = _stack.split("{{")[1].split("}}")[0]
-                    unfill.append(placeholder)
+def find_inner_placeholders_in_docx(docx_path: str):
 
-        if _start_stack >0 :
-            _choose_item.append(item)
-            _stack += text_inline
-    return unfill
+    # Mở tài liệu
+    doc = Document(docx_path)
+    
+    # Biểu thức chính quy để tìm các chuỗi trong dấu ngoặc nhọn {{}}
+    pattern = r"\{\{(.*?)\}\}"
+    
+    # Danh sách để chứa các placeholder tìm thấy
+    placeholders = []
+
+    # Kiểm tra tất cả các đoạn văn
+    for paragraph in doc.paragraphs:
+        matches = re.findall(pattern, paragraph.text)
+        placeholders.extend(matches)
+
+    # Kiểm tra tất cả các bảng
+    for table in doc.tables:
+        for row in table.rows:
+            for cell in row.cells:
+                matches = re.findall(pattern, cell.text)
+                placeholders.extend(matches)
+
+    return placeholders
+
 
 def extract_and_modify_docx(file_path, output_file_path, text_content, image_content, state_dir):
 
@@ -152,6 +162,8 @@ def extract_and_modify_docx(file_path, output_file_path, text_content, image_con
                 else:
                     new_docx_zip.writestr(item.filename, docx_zip.read(item.filename))
 
+    
+
     doc = Document(output_file_path)
 
     for paragraph in doc.paragraphs:
@@ -162,20 +174,23 @@ def extract_and_modify_docx(file_path, output_file_path, text_content, image_con
             for cell in row.cells:
                 for paragraph in cell.paragraphs:
                     replace_text_in_paragraph(paragraph, text_content, image_content, state_dir)
+    
+    placeholder_pattern = r'\{\{(.*?)\}\}'
+    for shape in doc.element.xpath('//w:txbxContent//w:p'):
+        for text in shape.xpath('.//w:t'):
+            if re.search(placeholder_pattern, text.text):
+                matches = re.findall(placeholder_pattern, text.text)
+                for placeholder in matches:
+                    if placeholder in text_content:
+                        replacement_text = text_content[placeholder]
+                        text.text = text.text.replace(f"{{{{{placeholder}}}}}", replacement_text)
+
 
     doc.save(output_file_path)
 
     doc = Document(output_file_path)
     
-    for paragraph in doc.paragraphs:
-        unfill = check_unfill(paragraph)
-        unfill_list += unfill
-    for table in doc.tables:
-        for row in table.rows:
-            for cell in row.cells:
-                for paragraph in cell.paragraphs:
-                    unfill = check_unfill(paragraph)
-                    unfill_list += unfill
+    unfill_list += find_inner_placeholders_in_docx(output_file_path)
     
     return True, unfill_list
 
@@ -185,7 +200,7 @@ def execute(file_path: str, output_file_path: str, text_content={}, image_conten
             return {
                 "tool": "docx_fill_with_image",
                 "success": False,
-                "error": "Try again with required \"text_content\":{\"placeholder\":\"value\"} hoáº·c \"image_content\":{\"placeholder\":\"image_path\"}"
+                "error": "Try again with required \"text_content\":{\"placeholder\":\"value\"} hoặc \"image_content\":{\"placeholder\":\"image_path\"}"
             }
 
         if state_dir is None:
