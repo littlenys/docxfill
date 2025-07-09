@@ -13,7 +13,7 @@ This Python tool automatically replaces **placeholders** in Microsoft Word `.doc
 * 📊 Modify **embedded Excel files** (`.xlsx`) that used to generate plot, chart or anything else inside Word documents
 * 🧩 **Supports placeholders inside textboxes**
 * 🧾 Detect **unfilled placeholders**
-* ✅ Preserve existing comments in .docx documents
+* ✅ **Preserve existing comments** in .docx documents
 * 🧠 Smart parsing of complex or multiline placeholder structures
 
 
